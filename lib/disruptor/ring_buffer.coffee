@@ -48,3 +48,4 @@ module.exports = class RingBuffer
   # @return {number} the current available sequence max of the buffer
   ###
   sequence: -> @available
+

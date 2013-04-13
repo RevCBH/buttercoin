@@ -11,3 +11,4 @@ module.exports = class BatchRunner
     batch = @getBatch()
     batch.forEach @processor # TODO - maybe wrap this so processors can't grab the ring-buffer storage array
     @sequence += batch.length
+
