@@ -25,7 +25,8 @@
     "deque": "*",
     "jspack": "*",
     "express": "3.1.2",
-    "connect": "2.7.5"
+    "connect": "2.7.5",
+    "fibers": "1.0.0"
   },
   "devDependencies": {
     "chai": "*",
