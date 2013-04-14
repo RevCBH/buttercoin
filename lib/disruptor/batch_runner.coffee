@@ -1,18 +1,13 @@
+# TODO - handle sequence overflow
 module.exports = class BatchRunner
-  constructor: (@buffer, @processor) -> # TODO - additional sequence deps
+  constructor: (@buffer, @barrier, @processor) ->
     @sequence = -1
 
+  getBatch: ->
+    return [] unless @sequence < @barrier.sequence()
+    [(@sequence + 1) .. @barrier.sequence()].map (n) => @buffer.read(n)
+
   sync: ->
-    # TODO - handle sequence overflow
-    # TODO - poll multiple sequence deps
-    
-    return unless @sequence < @buffer.available
-    
-    # Using JS for loop to avoid array allocations from coffeescript for loop
-    # for n in [(@sequence + 1) .. @buffer.available]
-    `for (var n = this.sequence + 1; n <= this.buffer.available; n++) {`
-    @processor(@buffer.read(n))
-    `}`
-
-    @sequence = @buffer.available
-
+    batch = @getBatch()
+    batch.forEach @processor # TODO - maybe wrap this so processors can't grab the ring-buffer storage array
+    @sequence += batch.length
