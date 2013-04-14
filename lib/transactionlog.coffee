@@ -79,7 +79,7 @@ module.exports = class TransactionLog
     return deferred.promise
 
   record: (message) =>
-    console.log 'RECORDING', message
+    # console.log 'RECORDING', message
     l = message.length
 
     part = jspack.Pack('I', [l])
