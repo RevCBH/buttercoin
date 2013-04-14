@@ -24,12 +24,11 @@ module.exports = class Engine
     @syncComponents.push new BatchRunner @messageBuffer, barrier, (message) =>
       @transaction_log.record( JSON.stringify(message) )
 
+    @syncComponents.push new BatchRunner @messageBuffer, barrier, (message) =>
+      message[1].callback() if message[1].callback
+
     @engineLoop = Fiber =>
-      # Use JS loops to avoid collecting results
-      `for (;;) {
-        _this.syncComponents.forEach(function(x) { x.sync(); });
-        Fiber.yield();
-      }`
+      @syncComponents.forEach (x) -> x.sync()
       return null
 
     @done = false
@@ -42,6 +41,7 @@ module.exports = class Engine
 
   stop: =>
     @done = true
+    console.log "ENGINE! STAHP!"
 
   tick: =>
     @engineLoop.run()

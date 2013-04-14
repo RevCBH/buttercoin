@@ -34,7 +34,7 @@ module.exports = class TransactionLog
         console.log 'READ CHUNK', chunk
 
   record: (message) =>
-    console.log 'RECORDING', message
+    # console.log 'RECORDING', message
     l = message.length
 
     part = jspack.Pack('I', [l])
