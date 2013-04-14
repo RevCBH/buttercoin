@@ -3,4 +3,14 @@
 # Buttercoin engine binary script
 # This binary will start a single instance of a Buttercoin trading engine
 
+Buttercoin = require('../lib/buttercoin')
+butter = new Buttercoin()
+
+butter.engine.start()
+
 console.log "engine: Buttercoin trading engine started"
+
+# use JS loop to avoid collecting results
+`while (!butter.engine.done) {
+  butter.engine.tick()
+}`
