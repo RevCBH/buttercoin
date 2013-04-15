@@ -29,7 +29,10 @@ module.exports = class API
 
   add_deposit: ( args ) ->
     deferred = Q.defer()
-    args.callback = deferred.resolve
+    orig_cb = args.callback
+    args.callback = ->
+      deferred.resolve
+      orig_cb?()
 
     message = [operations.ADD_DEPOSIT, args ]
 

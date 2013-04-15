@@ -5,7 +5,7 @@ butter = new Buttercoin()
 console.log "starting up"
 startTime = process.hrtime()
 
-count = 100000
+count = 10000
 didDeposit = (n) ->
   if n > count
     elapsedTime = process.hrtime(startTime)
@@ -15,7 +15,7 @@ didDeposit = (n) ->
     butter.engine.stop()
 
 doDeposit = (n) ->
-  butter.api.add_deposit account: 'Peter', currency: 'USD', amount: n,  callback: -> didDeposit(n)
+  butter.api.add_deposit(account: 'Peter', currency: 'USD', amount: n, callback: -> didDeposit(n))
 
 q = butter.engine.start()
 
@@ -34,7 +34,7 @@ q.then =>
   n = 1
   `while (!butter.engine.done) {
     //console.log("tick");
-    doDeposit(n);
+    doDeposit(n).done();
     butter.engine.tick();
     n += 1;
   }`

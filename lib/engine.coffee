@@ -14,6 +14,7 @@ BatchRunner = require('./disruptor/batch_runner')
 SequenceBarrier = require('./disruptor/sequence_barrier')
 
 Fiber = require('fibers')
+logger = require('./logger')
 
 module.exports = class Engine
   constructor: ->
@@ -41,11 +42,11 @@ module.exports = class Engine
     return Q.fcall =>
       return @transaction_log.start()
     .then =>
-      console.log 'STARTED ENGINE'
+      logger.info 'STARTED ENGINE'
 
   stop: =>
     @done = true
-    console.log "ENGINE! STAHP!"
+    logger.info "ENGINE! STAHP!"
 
   tick: =>
     @engineLoop.run()
@@ -53,7 +54,7 @@ module.exports = class Engine
   receive_message: (message) =>
     # journal + replicate
 
-    console.log 'RECEIVED MESSAGE'
+    logger.info 'RECEIVED MESSAGE'
 
     ##### Disruptor impl. Need to figure out where the driver of concurency lives
     @messageBuffer.claim()(message)
@@ -62,7 +63,7 @@ module.exports = class Engine
     # execute business logic
 
   replay_message: (message) =>
-    console.log 'REPLAY MESSAGE', message
+    logger.info 'REPLAY MESSAGE', message
 
     if message[0] == operations.ADD_DEPOSIT
       @datastore.add_deposit(message[1])

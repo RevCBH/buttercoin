@@ -2,6 +2,7 @@ Q = require('q')
 QFS = require("q-io/fs")
 fs = require("fs")
 jspack = require('jspack').jspack
+logger = require('./logger')
 
 module.exports = class TransactionLog
   constructor: (@engine) ->
@@ -10,21 +11,21 @@ module.exports = class TransactionLog
   start: =>
     return QFS.exists(@filename).then (retval) =>
       if retval
-        console.log 'LOG EXISTS'
+        logger.info 'LOG EXISTS'
         Q.fcall =>
           @replay_log().then =>
             # This is dangerous
             @initialize_log()
       else
-        console.log 'LOG DOES NOT EXIST'
+        logger.info 'LOG DOES NOT EXIST'
         Q.fcall =>
           @initialize_log().then =>
             return null
 
   initialize_log: =>
-    console.log 'INITIALIZING LOG'
+    logger.info 'INITIALIZING LOG'
     Q.nfcall(fs.open, @filename, "w").then (writefd) =>
-      console.log 'GOT FD', writefd
+      logger.info 'GOT FD', writefd
       @writefd = writefd
 
   replay_log: =>
@@ -33,23 +34,23 @@ module.exports = class TransactionLog
 
     @readstream = fs.createReadStream(@filename, {flags: "r"})
 
-    console.log 'GOT READSTREAM'
+    logger.info 'GOT READSTREAM'
 
     deferred = Q.defer()
 
     Q.fcall =>
       parts = []
       @readstream.on 'end', =>
-        console.log 'done reading'
+        logger.info 'done reading'
         @readstream.close()
         deferred.resolve()
 
       @readstream.on 'readable', =>
         data = @readstream.read()
-        console.log 'READ', data, data.isEncoding
+        logger.info 'READ', data, data.isEncoding
         lenprefix = jspack.Unpack('I', (c.charCodeAt(0) for c in data.slice(0,4).toString('binary').split('')), 0 )[0]
 
-        console.log 'lenprefix', lenprefix
+        logger.info 'lenprefix', lenprefix
 
         chunk = data.slice(4, 4 + lenprefix)
 
@@ -58,28 +59,28 @@ module.exports = class TransactionLog
         else
           rest = ''
 
-        console.log 'LENS', data.length, chunk.length, rest.length
-        console.log 'CHUNK', chunk.toString()
+        logger.info 'LENS', data.length, chunk.length, rest.length
+        logger.info 'CHUNK', chunk.toString()
 
-        console.log 'rest', rest
+        logger.info 'rest', rest
 
 
         if chunk.length == lenprefix
           message = JSON.parse(chunk.toString())
-          console.log 'message', message
+          logger.info 'message', message
           @engine.replay_message(message)
           @readstream.unshift(rest)
         else
           @readstream.unshift(data)
 
     .fail =>
-      console.log 'ERROR'
+      logger.error 'ERROR'
     .done()
 
     return deferred.promise
 
   record: (message) =>
-    # console.log 'RECORDING', message
+    # logger.info 'RECORDING', message
     l = message.length
 
     part = jspack.Pack('I', [l])
@@ -87,9 +88,9 @@ module.exports = class TransactionLog
     buf = Buffer.concat [ Buffer(part), Buffer(message) ]
 
     writeq = Q.nfcall(fs.write, @writefd, buf, 0, buf.length, null)
-    console.log 'DONE WRITING', writeq, buf
+    logger.info 'DONE WRITING', writeq, buf
     return writeq
 
   flush: =>
     Q.nfcall(fs.fsync, @writefd).then =>
-      console.log 'FLUSHED'
+      logger.info 'FLUSHED'
