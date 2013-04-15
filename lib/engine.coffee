@@ -1,13 +1,9 @@
-
 Dequeue = require('deque').Dequeue
-
 DataStore = require('./datastore/datastore')
-
 TransactionLog = require('./transactionlog')
-
 Q = require('q')
-
 operations = require("./operations")
+logger = require('./logger')
 
 module.exports = class Engine
   constructor: ->
@@ -18,12 +14,12 @@ module.exports = class Engine
     return Q.fcall =>
       return @transaction_log.start()
     .then =>
-      console.log 'STARTED ENGINE'
+      logger.info 'STARTED ENGINE'
 
   receive_message: (message) =>
     # journal + replicate
 
-    console.log 'RECEIVED MESSAGE'
+    logger.info 'RECEIVED MESSAGE'
 
     @transaction_log.record( JSON.stringify(message) ).then =>
       # deserialize (skipping this for now)
@@ -31,7 +27,7 @@ module.exports = class Engine
       @replay_message(message)
 
   replay_message: (message) =>
-    console.log 'REPLAY MESSAGE', message
+    logger.info 'REPLAY MESSAGE', message
 
     if message[0] == operations.ADD_DEPOSIT
       @datastore.add_deposit(message[1])
